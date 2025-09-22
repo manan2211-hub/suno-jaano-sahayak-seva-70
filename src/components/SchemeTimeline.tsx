@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Timer } from "lucide-react";
 import { VoiceReview } from "@/components/VoiceReview";
-import { VoiceReviewSettings } from "@/components/VoiceReviewSettings";
 import { TimelineDisplay } from "@/components/TimelineDisplay";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
@@ -106,10 +105,7 @@ export function SchemeTimeline({ dictionary }: SchemeTimelineProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <VoiceReviewSettings dictionary={dictionary} />
-      
-      <Card className="w-full border-2 border-desi-purple/10 animate-fade-in">
+    <Card className="w-full border-2 border-desi-purple/10 animate-fade-in">
       <CardHeader className="bg-gradient-to-r from-desi-purple/10 to-desi-blue/10">
         <CardTitle className="flex items-center gap-2 text-center text-desi-textDark">
           <Timer className="h-6 w-6" />
@@ -135,7 +131,6 @@ export function SchemeTimeline({ dictionary }: SchemeTimelineProps) {
           </div>
         </div>
       </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 }

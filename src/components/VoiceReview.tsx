@@ -4,8 +4,6 @@ import { Slider } from "@/components/ui/slider";
 import { Play, Pause, Square, Volume2, Gauge } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 interface VoiceReview {
   id: string;
@@ -24,21 +22,12 @@ interface VoiceReviewProps {
 }
 
 export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onStop }: VoiceReviewProps) {
-  const { preferences } = useUserPreferences();
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState([0.8]);
   const [speed, setSpeed] = useState([0.9]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const progressInterval = useRef<NodeJS.Timeout>();
-
-  // Initialize with preferences when they're loaded
-  useEffect(() => {
-    if (preferences) {
-      setVolume([preferences.defaultVolume]);
-      setSpeed([preferences.defaultSpeed]);
-    }
-  }, [preferences]);
 
   const handlePlay = async () => {
     setIsLoading(true);
@@ -48,22 +37,6 @@ export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onSto
       setIsLoading(false);
     }
   };
-
-  const handleVolumeUp = () => setVolume([Math.min(1, volume[0] + 0.1)]);
-  const handleVolumeDown = () => setVolume([Math.max(0, volume[0] - 0.1)]);
-  const handleSpeedUp = () => setSpeed([Math.min(2, speed[0] + 0.1)]);
-  const handleSpeedDown = () => setSpeed([Math.max(0.5, speed[0] - 0.1)]);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts({
-    onPlayPause: handlePlay,
-    onStop,
-    onVolumeUp: handleVolumeUp,
-    onVolumeDown: handleVolumeDown,
-    onSpeedUp: handleSpeedUp,
-    onSpeedDown: handleSpeedDown,
-    isEnabled: preferences?.keyboardShortcuts && isPlaying,
-  });
 
   useEffect(() => {
     if (isPlaying) {
@@ -125,7 +98,7 @@ export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onSto
   };
 
   return (
-    <div className={`p-4 rounded-lg bg-gradient-to-r from-desi-orange/5 to-desi-yellow/5 border border-desi-orange/10 transition-all duration-300 hover-scale ${preferences.highContrast ? 'border-2 border-desi-purple' : ''} ${isPlaying ? 'animate-fade-in ring-2 ring-desi-purple/20' : ''}`}>
+    <div className="p-4 rounded-lg bg-gradient-to-r from-desi-orange/5 to-desi-yellow/5 border border-desi-orange/10 transition-all duration-300 hover-scale">
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-medium text-desi-textDark">{review.userName}</p>
