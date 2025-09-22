@@ -4,6 +4,8 @@ import { Slider } from "@/components/ui/slider";
 import { Play, Pause, Square, Volume2, Gauge } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 interface VoiceReview {
   id: string;
@@ -22,12 +24,41 @@ interface VoiceReviewProps {
 }
 
 export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onStop }: VoiceReviewProps) {
+  const { preferences } = useUserPreferences();
   const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState([0.8]);
-  const [speed, setSpeed] = useState([0.9]);
+  const [volume, setVolume] = useState([preferences.defaultVolume]);
+  const [speed, setSpeed] = useState([preferences.defaultSpeed]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const progressInterval = useRef<NodeJS.Timeout>();
+
+  const handlePlay = async () => {
+    setIsLoading(true);
+    try {
+      await onPlayToggle(review);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onPlayPause: handlePlay,
+    onStop,
+    onVolumeUp: () => setVolume([Math.min(1, volume[0] + 0.1)]),
+    onVolumeDown: () => setVolume([Math.max(0, volume[0] - 0.1)]),
+    onSpeedUp: () => setSpeed([Math.min(2, speed[0] + 0.1)]),
+    onSpeedDown: () => setSpeed([Math.max(0.5, speed[0] - 0.1)]),
+    isEnabled: preferences.keyboardShortcuts && isPlaying,
+  });
+
+  // Update default values when preferences change
+  useEffect(() => {
+    if (!isPlaying) {
+      setVolume([preferences.defaultVolume]);
+      setSpeed([preferences.defaultSpeed]);
+    }
+  }, [preferences.defaultVolume, preferences.defaultSpeed, isPlaying]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -57,14 +88,6 @@ export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onSto
     };
   }, [isPlaying]);
 
-  const handlePlay = async () => {
-    setIsLoading(true);
-    try {
-      await onPlayToggle(review);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleVolumeChange = (newVolume: number[]) => {
     setVolume(newVolume);
@@ -97,7 +120,7 @@ export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onSto
   };
 
   return (
-    <div className="p-4 rounded-lg bg-gradient-to-r from-desi-orange/5 to-desi-yellow/5 border border-desi-orange/10">
+    <div className={`p-4 rounded-lg bg-gradient-to-r from-desi-orange/5 to-desi-yellow/5 border border-desi-orange/10 transition-all duration-300 hover-scale ${preferences.highContrast ? 'border-2 border-desi-purple' : ''} ${isPlaying ? 'animate-fade-in ring-2 ring-desi-purple/20' : ''}`}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-medium text-desi-textDark">{review.userName}</p>
