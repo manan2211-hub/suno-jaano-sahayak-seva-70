@@ -26,11 +26,19 @@ interface VoiceReviewProps {
 export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onStop }: VoiceReviewProps) {
   const { preferences } = useUserPreferences();
   const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState([preferences.defaultVolume]);
-  const [speed, setSpeed] = useState([preferences.defaultSpeed]);
+  const [volume, setVolume] = useState([0.8]);
+  const [speed, setSpeed] = useState([0.9]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const progressInterval = useRef<NodeJS.Timeout>();
+
+  // Initialize with preferences when they're loaded
+  useEffect(() => {
+    if (preferences) {
+      setVolume([preferences.defaultVolume]);
+      setSpeed([preferences.defaultSpeed]);
+    }
+  }, [preferences]);
 
   const handlePlay = async () => {
     setIsLoading(true);
@@ -41,24 +49,21 @@ export function VoiceReview({ review, dictionary, isPlaying, onPlayToggle, onSto
     }
   };
 
+  const handleVolumeUp = () => setVolume([Math.min(1, volume[0] + 0.1)]);
+  const handleVolumeDown = () => setVolume([Math.max(0, volume[0] - 0.1)]);
+  const handleSpeedUp = () => setSpeed([Math.min(2, speed[0] + 0.1)]);
+  const handleSpeedDown = () => setSpeed([Math.max(0.5, speed[0] - 0.1)]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onPlayPause: handlePlay,
     onStop,
-    onVolumeUp: () => setVolume([Math.min(1, volume[0] + 0.1)]),
-    onVolumeDown: () => setVolume([Math.max(0, volume[0] - 0.1)]),
-    onSpeedUp: () => setSpeed([Math.min(2, speed[0] + 0.1)]),
-    onSpeedDown: () => setSpeed([Math.max(0.5, speed[0] - 0.1)]),
-    isEnabled: preferences.keyboardShortcuts && isPlaying,
+    onVolumeUp: handleVolumeUp,
+    onVolumeDown: handleVolumeDown,
+    onSpeedUp: handleSpeedUp,
+    onSpeedDown: handleSpeedDown,
+    isEnabled: preferences?.keyboardShortcuts && isPlaying,
   });
-
-  // Update default values when preferences change
-  useEffect(() => {
-    if (!isPlaying) {
-      setVolume([preferences.defaultVolume]);
-      setSpeed([preferences.defaultSpeed]);
-    }
-  }, [preferences.defaultVolume, preferences.defaultSpeed, isPlaying]);
 
   useEffect(() => {
     if (isPlaying) {
